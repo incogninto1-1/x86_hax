@@ -26,10 +26,9 @@ _start:
     cli             ; Disable interrupts
     cld             ; Clear direction flag
     
-    mov dx, 0x0CF9
     mov al, 0x06
-    out dx, al
-    
+    out 0xcf9, al
+
 .loop:
     ;hlt             ; Tell the CPU to sleep until the next event
     jmp .loop       ; If it wakes up, go back to sleep
