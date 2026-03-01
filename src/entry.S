@@ -26,26 +26,10 @@ _start:
     cli             ; Disable interrupts
     cld             ; Clear direction flag
     
-    ; --- 1. PAINT THE BUFFER ---
-    mov edi, 0x3f000000  ; Our sec_bootfb
-    mov ecx, 1024000     ; 1280 * 800
-    mov eax, 0xFF00FF00  ; Nuclear Green
-    rep stosd
-
-    ; --- 2. THE TRIGGER (The Flip) ---
-    ; We write the buffer address to the Display Surface Register
-    ; This tells the hardware: "Refresh now from this location"
-    mov ebx, 0xFF18019C  ; DSPASURF Register
-    mov eax, 0x3f000000
-    mov [ebx], eax
-
-    ; --- 3. THE "KICK" (Display Control) ---
-    ; Enable Display A and Plane A (just in case they were stalled)
-    mov ebx, 0xFF180180  ; DSPACNTR Register
-    mov eax, [ebx]
-    or eax, 0x80000000   ; Set Bit 31 (Display Enable)
-    mov [ebx], eax
-
+    mov dx, 0x0CF9
+    mov al, 0x06
+    out dx, al
+    
 .loop:
     ;hlt             ; Tell the CPU to sleep until the next event
     jmp .loop       ; If it wakes up, go back to sleep
