@@ -25,11 +25,29 @@ header_start:
 _start:
     cli             ; Disable interrupts
     cld             ; Clear direction flag
+
+    ; --- Toggle LCD Reset (GPIO 47) ---
+    mov ebx, 0xff119000
     
-    mov dx, 0x0CF9    ; Move the port address into DX
-    mov al, 0x06      ; 0x06 = Reset CPU + System Reset
-    out dx, al        ; Out to the port in DX
-    ;If this works, it should reboot the tablet :\
+    ; Set Direction of Bank 1 (Bit 15) to Output
+    mov eax, [ebx + 0x10]
+    or eax, (1 << 15)
+    mov [ebx + 0x10], eax
+
+    ; Set Data of Bank 1 (Bit 15) to LOW (Reset active)
+    mov eax, [ebx + 0x04]
+    and eax, ~(1 << 15)
+    mov [ebx + 0x04], eax
+    
+    ; Pause a bit (simple loop)
+    mov ecx, 0xFFFF
+.delay: loop .delay
+
+    ; Set Data of Bank 1 (Bit 15) to HIGH (Release reset)
+    or eax, (1 << 15)
+    mov [ebx + 0x04], eax
+
+    
 
 .loop:
     ;hlt             ; Tell the CPU to sleep until the next event
