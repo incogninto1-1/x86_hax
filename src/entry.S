@@ -26,23 +26,28 @@ _start:
     cli             ; Disable interrupts
     cld             ; Clear direction flag
 
-    ; --- RING 0 TEST ---
-    ; This instruction is strictly privileged.
-    mov eax, cr0       ; Read Control Register 0
-    or eax, 0x01       ; Ensure PE (Protected Mode) bit is set
-    mov cr0, eax       ; Write it back
+    ; --- Step 1: Clear the screen to Black ---
+    mov edi, 0x3f000000  ; FB Address
+    mov ecx, 1024000     ; 1280 * 800 pixels
+    xor eax, eax         ; Black (0x00000000)
+    rep stosd
 
-    ; If we reach here, we are definitely Ring 0!
-    ; Now let's try a "Hardware Nuke" that doesn't use I/O ports.
-    ; We'll point the IDT to null and trigger an interrupt.
-    lidt [zero_idt]    ; Load a 0-length Interrupt Table
-    int 3              ; Trigger a software breakpoint -> Triple Fault!
+    ; --- Step 2: Draw a 200x200 Red Square (Center-ish) ---
+    ; Offset = (Row * Stride) + Column
+    ; Let's start at Row 300, Col 540
+    mov edi, 0x3f000000
+    add edi, (300 * 1280 * 4) + (540 * 4)
 
-section .data
-zero_idt:
-    dw 0
-    dd 0
-    
+    mov edx, 200         ; Height
+.draw_row:
+    mov ecx, 200         ; Width
+    mov eax, 0xFFFF0000  ; Bright Red
+    push edi             ; Save start of row
+    rep stosd            ; Draw 200 red pixels
+    pop edi              ; Restore start of row
+    add edi, (1280 * 4)  ; Move to next line
+    dec edx
+    jnz .draw_row
 
 .loop:
     ;hlt             ; Tell the CPU to sleep until the next event
