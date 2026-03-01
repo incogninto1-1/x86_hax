@@ -26,8 +26,10 @@ _start:
     cli             ; Disable interrupts
     cld             ; Clear direction flag
     
-    mov al, 0x06
-    out 0xcf9, al
+    mov dx, 0x0CF9    ; Move the port address into DX
+    mov al, 0x06      ; 0x06 = Reset CPU + System Reset
+    out dx, al        ; Out to the port in DX
+    ;If this works, it should reboot the tablet :\
 
 .loop:
     ;hlt             ; Tell the CPU to sleep until the next event

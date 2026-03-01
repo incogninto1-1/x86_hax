@@ -5,3 +5,8 @@ all:
 
 clean:
 	rm -rf obj out
+
+send:
+	git add .
+	git commit -m "message sent automatically"
+	git push
