@@ -26,13 +26,18 @@ _start:
     cli             ; Disable interrupts
     cld             ; Clear direction flag
 
-    ; --- The "Nuke" for the Watchdog ---
-    ; On Intel, the TCO_TMR_HALT bit (bit 11) in TCO1_CNT
-    ; is the master 'Off' switch.
-    mov dx, 0x0408      ; TCO1_CNT register
-    in ax, dx
-    or ax, 0x0800       ; Set Bit 11 (Halt)
-    out dx, ax
+    ; --- TARGET ACQUIRED: sec_bootfb ---
+    mov edi, 0x3f000000  
+    
+    ; The screen is 1280x800. At 4 bytes per pixel (ARGB8888), 
+    ; that is 1,024,000 pixels = 4,096,000 bytes.
+    ; We'll fill exactly that amount.
+    mov ecx, 1024000      
+    
+    ; Let's use a bright "Nuclear Green" so there's no doubt.
+    mov eax, 0xFF00FF00  
+    
+    rep stosd            ; Paint the town green
 
 .loop:
     ;hlt             ; Tell the CPU to sleep until the next event
