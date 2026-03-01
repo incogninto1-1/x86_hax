@@ -26,27 +26,22 @@ _start:
     cli             ; Disable interrupts
     cld             ; Clear direction flag
 
-    ; --- Toggle LCD Reset (GPIO 47) ---
-    mov ebx, 0xff119000
-    
-    ; Set Direction of Bank 1 (Bit 15) to Output
-    mov eax, [ebx + 0x10]
-    or eax, (1 << 15)
-    mov [ebx + 0x10], eax
+    ; --- RING 0 TEST ---
+    ; This instruction is strictly privileged.
+    mov eax, cr0       ; Read Control Register 0
+    or eax, 0x01       ; Ensure PE (Protected Mode) bit is set
+    mov cr0, eax       ; Write it back
 
-    ; Set Data of Bank 1 (Bit 15) to LOW (Reset active)
-    mov eax, [ebx + 0x04]
-    and eax, ~(1 << 15)
-    mov [ebx + 0x04], eax
-    
-    ; Pause a bit (simple loop)
-    mov ecx, 0xFFFF
-.delay: loop .delay
+    ; If we reach here, we are definitely Ring 0!
+    ; Now let's try a "Hardware Nuke" that doesn't use I/O ports.
+    ; We'll point the IDT to null and trigger an interrupt.
+    lidt [zero_idt]    ; Load a 0-length Interrupt Table
+    int 3              ; Trigger a software breakpoint -> Triple Fault!
 
-    ; Set Data of Bank 1 (Bit 15) to HIGH (Release reset)
-    or eax, (1 << 15)
-    mov [ebx + 0x04], eax
-
+section .data
+zero_idt:
+    dw 0
+    dd 0
     
 
 .loop:
