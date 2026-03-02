@@ -5,11 +5,11 @@ HEEEEEELP. I NEED AN EMERGENCY KILL SWITCH FOR THE CODE!!!
 By far, the most stable solution I have found for it so far that is guarranteed to work is to trigger a triple fault (the "Oh Shoot! This is very bad! I need to reboot ASAP" reflex of the x86 CPU). Here is a way to trigger it in x86 assembly
 
 section .data		; This is to store the interrupt descriptor table (IDT)
-blank_idt:
-	dw 0
-	db 0
+blank_idt:		; This is an example IDT. Of course, you could use any IDT, as long as you know how to trigger a triple fault on it.
+	dw 0		; define an empty 16 bit value
+	db 0		; And an empty 8 bit value
 
-section .text
+section .text		 ; This is where our code goes
 	lidt [blank_idt] ; Load out blank IDT into the CPU
 	int 3		 ; KILL IT WITH FIRE
 
