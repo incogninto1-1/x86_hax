@@ -46,8 +46,6 @@ _start:
     add edi, 4          ; Next GTT entry
     loop .fill_gtt
 
-.loop:
-    jmp .loop
 
 
 .loop:
