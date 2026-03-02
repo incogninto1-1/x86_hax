@@ -26,28 +26,29 @@ _start:
     cli             ; Disable interrupts
     cld             ; Clear direction flag
 
-    ; --- Step 1: Clear the screen to Black ---
-    mov edi, 0x3f000000  ; FB Address
-    mov ecx, 1024000     ; 1280 * 800 pixels
-    xor eax, eax         ; Black (0x00000000)
+    ; --- 1. PAINT OUR BUFFER GREEN ---
+    mov edi, 0x3f000000
+    mov ecx, 1024000
+    mov eax, 0xFF00FF00
     rep stosd
 
-    ; --- Step 2: Draw a 200x200 Red Square (Center-ish) ---
-    ; Offset = (Row * Stride) + Column
-    ; Let's start at Row 300, Col 540
-    mov edi, 0x3f000000
-    add edi, (300 * 1280 * 4) + (540 * 4)
+    ; --- 2. HIJACK THE GTT ---
+    ; Based on GMA500 specs, the GTT table is often at 0x40000 (PCI offset)
+    ; or mapped at the start of the MMIO range.
+    ; Let's try to find the GTT at the 'pvrsrvkm' address you found: dff00000
+    mov edi, 0xdff00000
+    mov ecx, 2048        ; Fill 2048 entries
+    mov eax, 0x3f000001  ; Point entry to 0x3f000000 (Bit 0 is 'Present')
+    
+.fill_gtt:
+    mov [edi], eax
+    add eax, 4096       ; Point to next physical page
+    add edi, 4          ; Next GTT entry
+    loop .fill_gtt
 
-    mov edx, 200         ; Height
-.draw_row:
-    mov ecx, 200         ; Width
-    mov eax, 0xFFFF0000  ; Bright Red
-    push edi             ; Save start of row
-    rep stosd            ; Draw 200 red pixels
-    pop edi              ; Restore start of row
-    add edi, (1280 * 4)  ; Move to next line
-    dec edx
-    jnz .draw_row
+.loop:
+    jmp .loop
+
 
 .loop:
     ;hlt             ; Tell the CPU to sleep until the next event
